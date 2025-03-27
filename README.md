@@ -1,0 +1,1 @@
+# usokaiho-comic-generator
