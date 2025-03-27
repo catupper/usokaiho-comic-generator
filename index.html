@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>嘘解法コミックジェネレーター</title>
+  <style>
+    body { font-family: 'Noto Sans JP', sans-serif; padding: 2rem; background: #f5f5f5; }
+    label { margin-bottom: 0.25rem; display: block; }
+    .row { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; height:100px }
+    textarea { flex: 2; }
+    .controls { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; min-width: 100px; }
+    .control { display: flex; flex-direction: row; gap: 0.25rem; flex: 1; min-width: 100px; }
+    canvas { max-width: 100%; height: auto; display: block; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>嘘解法コミックジェネレーター</h1>
+
+  <div class="row">
+    <div class="textarea-block">
+      <label for="text1">1コマ目のセリフ</label>
+      <textarea id="text1" style="height: 50px">回分である
+ような一番
+長い接尾辞？</textarea>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label for="x1">X座標</label>
+        <input type="number" id="x1" value="113" />
+      </div>
+      <div class="control">
+        <label for="y1">Y座標</label>
+        <input type="number" id="y1" value="50" />
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="textarea-block">
+      <label for="text2">2コマ目のセリフ</label>
+      <textarea id="text2" style="height: 50px">これは
+貪欲法で
+一発だ！</textarea>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label for="x2">X座標</label>
+        <input type="number" id="x2" value="130" />
+      </div>
+      <div class="control">
+        <label for="y2">Y座標</label>
+        <input type="number" id="y2" value="370" />
+      </div>
+    </div>
+  </div>
+
+  <button id="generate">画像生成</button>
+  <canvas id="comicCanvas" width="600" height="900"></canvas>
+
+  <script>
+    const canvas = document.getElementById("comicCanvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    img.src = "Gm9YrdPbYAYeG75.jpg";
+
+    function drawVerticalText(ctx, text, x, y, lineHeight) {
+      const lines = text.split("\n");
+      lines.forEach((line, i) => {
+        const chars = line.split("");
+        chars.forEach((char, j) => {
+          ctx.fillText(char, x - i * lineHeight, y + j * lineHeight);
+        });
+      });
+    }
+
+    function draw(dryRun = false) {
+      const text1 = document.getElementById("text1").value;
+      const text2 = document.getElementById("text2").value;
+      const x1 = parseInt(document.getElementById("x1").value, 10);
+      const y1 = parseInt(document.getElementById("y1").value, 10);
+      const x2 = parseInt(document.getElementById("x2").value, 10);
+      const y2 = parseInt(document.getElementById("y2").value, 10);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      ctx.font = "28px 'Noto Sans JP'";
+      ctx.fillStyle = "black";
+      ctx.textBaseline = "top";
+
+      drawVerticalText(ctx, text1, dryRun ? -1000 : x1, y1, 30);
+      drawVerticalText(ctx, text2, dryRun ? -1000 : x2, y2, 30);
+    }
+
+    img.onload = () => draw(true);
+
+    document.getElementById("generate").addEventListener("click", () => draw(false));
+    setInterval(() => draw(false), 100);
+
+    ["text1", "x1", "y1", "text2", "x2", "y2"].forEach(id => {
+      document.getElementById(id).addEventListener("input", () => draw(false));
+    });
+  </script>
+</body>
+</html>
