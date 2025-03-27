@@ -9,9 +9,11 @@
     body { font-family: 'Noto Sans JP', sans-serif; padding: 2rem; background: #f5f5f5; }
     label { margin-bottom: 0.25rem; display: block; }
     .row { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; height:100px }
-    textarea { flex: 2; }
-    .controls { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; min-width: 100px; }
-    .control { display: flex; flex-direction: row; gap: 0.25rem; flex: 1; min-width: 100px; }
+    .controls { display: flex; flex-direction: column;   }
+    .control { display: flex; flex-direction: row; }
+    .control > input{
+      width: 50px;
+    }
     canvas { max-width: 100%; height: auto; display: block; margin-top: 1rem; }
   </style>
 </head>
@@ -27,7 +29,7 @@
     </div>
     <div class="controls">
       <div class="control">
-        <label for="x1">X座標</label>
+        <label for="x1" width="30px">X座標</label>
         <input type="number" id="x1" value="113" />
       </div>
       <div class="control">
