@@ -105,7 +105,7 @@
       });
     }
 
-    function draw(dryRun=false) {
+    function draw() {
       const { text1, text2 } = getTextPositions();
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -115,8 +115,8 @@
       ctx.fillStyle = "black";
       ctx.textBaseline = "top";
 
-      drawVerticalText(ctx, text1.text, dryRun ? -1000 : text1.x, text1.y, 30);
-      drawVerticalText(ctx, text2.text, dryRun ? -1000 : text2.x, text2.y, 30);
+      drawVerticalText(ctx, text1.text, text1.x, text1.y, 30);
+      drawVerticalText(ctx, text2.text, text2.x, text2.y, 30);
     }
 
     function updatePosition(key, dx, dy) {
@@ -168,12 +168,11 @@
     canvas.addEventListener("pointerup", () => { dragging = null; });
     canvas.addEventListener("pointerleave", () => { dragging = null; });
 
-    draw(true);
-    setTimeout(() => {draw(false)}, 100);
-    img.onload = draw;
+    setTimeout(() => {draw()}, 100);
+    img.onload = () => draw();
 
     ["text1", "x1", "y1", "text2", "x2", "y2"].forEach(id => {
-      document.getElementById(id).addEventListener("input", draw);
+      document.getElementById(id).addEventListener("input", () => draw());
     });
 
 
