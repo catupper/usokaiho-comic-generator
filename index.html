@@ -58,7 +58,7 @@
     </div>
   </div>
 
-  <button id="generate">画像生成</button>
+  <button id="download">画像をダウンロード</button>
   <canvas id="comicCanvas" width="600" height="900"></canvas>
 
   <script>
@@ -66,6 +66,34 @@
     const ctx = canvas.getContext("2d");
     const img = new Image();
     img.src = "Gm9YrdPbYAYeG75.jpg";
+
+    let dragging = null;
+    let offsetX, offsetY;
+
+    const positions = {
+      text1: { xInput: "x1", yInput: "y1", id: "text1" },
+      text2: { xInput: "x2", yInput: "y2", id: "text2" },
+    };
+
+    function getTextPositions() {
+      return Object.fromEntries(Object.entries(positions).map(([key, val]) => {
+        const text = document.getElementById(val.id).value;
+        const x = parseInt(document.getElementById(val.xInput).value, 10);
+        const y = parseInt(document.getElementById(val.yInput).value, 10);
+        return [key, { text, x, y }];
+      }));
+    }
+
+    function getTextBoundingBox(text, x, y, lineHeight = 30, fontSize = 28) {
+      const lines = text.split("\n");
+      const maxLineLength = Math.max(...lines.map(line => line.length));
+      return {
+        x: x - (lines.length - 1) * lineHeight,
+        y,
+        width: lines.length * lineHeight,
+        height: maxLineLength * lineHeight
+      };
+    }
 
     function drawVerticalText(ctx, text, x, y, lineHeight) {
       const lines = text.split("\n");
@@ -77,13 +105,8 @@
       });
     }
 
-    function draw(dryRun = false) {
-      const text1 = document.getElementById("text1").value;
-      const text2 = document.getElementById("text2").value;
-      const x1 = parseInt(document.getElementById("x1").value, 10);
-      const y1 = parseInt(document.getElementById("y1").value, 10);
-      const x2 = parseInt(document.getElementById("x2").value, 10);
-      const y2 = parseInt(document.getElementById("y2").value, 10);
+    function draw(dryRun=false) {
+      const { text1, text2 } = getTextPositions();
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -92,17 +115,73 @@
       ctx.fillStyle = "black";
       ctx.textBaseline = "top";
 
-      drawVerticalText(ctx, text1, dryRun ? -1000 : x1, y1, 30);
-      drawVerticalText(ctx, text2, dryRun ? -1000 : x2, y2, 30);
+      drawVerticalText(ctx, text1.text, dryRun ? -1000 : text1.x, text1.y, 30);
+      drawVerticalText(ctx, text2.text, dryRun ? -1000 : text2.x, text2.y, 30);
     }
 
-    img.onload = () => draw(true);
+    function updatePosition(key, dx, dy) {
+      const xEl = document.getElementById(positions[key].xInput);
+      const yEl = document.getElementById(positions[key].yInput);
+      xEl.value = parseInt(xEl.value) + dx;
+      yEl.value = parseInt(yEl.value) + dy;
+      draw();
+    }
 
-    document.getElementById("generate").addEventListener("click", () => draw(false));
-    setInterval(() => draw(false), 100);
+    function getHandleUnderPointer(x, y) {
+      const pos = getTextPositions();
+      for (const key of Object.keys(pos)) {
+        const { text, x: tx, y: ty } = pos[key];
+        const box = getTextBoundingBox(text, tx, ty);
+        if (
+          x >= box.x &&
+          x <= box.x + box.width &&
+          y >= box.y &&
+          y <= box.y + box.height
+        ) {
+          return key;
+        }
+      }
+      return null;
+    }
+
+    canvas.addEventListener("pointerdown", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const target = getHandleUnderPointer(x, y);
+      if (target) {
+        dragging = target;
+        const current = getTextPositions()[target];
+        offsetX = x - current.x;
+        offsetY = y - current.y;
+      }
+    });
+
+    canvas.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      updatePosition(dragging, x - offsetX - getTextPositions()[dragging].x, y - offsetY - getTextPositions()[dragging].y);
+    });
+
+    canvas.addEventListener("pointerup", () => { dragging = null; });
+    canvas.addEventListener("pointerleave", () => { dragging = null; });
+
+    draw(true);
+    setTimeout(() => {draw(false)}, 100);
+    img.onload = draw;
 
     ["text1", "x1", "y1", "text2", "x2", "y2"].forEach(id => {
-      document.getElementById(id).addEventListener("input", () => draw(false));
+      document.getElementById(id).addEventListener("input", draw);
+    });
+
+
+    document.getElementById("download").addEventListener("click", () => {
+      const link = document.createElement("a");
+      link.download = "usokaiho.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
     });
   </script>
 </body>
